@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "open_cec_api"
+version = "0.0.0"
+description = ""
+authors = [
+
+]
+maintainers = [
+
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.115.12"}
+pydantic = "^2"
+pydantic-settings = "^2"
+loguru = "^0.7.0"
+passlib = "^1.7.4"
+sqlalchemy = "^2.0.41"
+psycopg2-binary = "^2.9.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+ruff = "^0.4.1"
+mypy = "^1.10.0"
+testcontainers = "^4.6.0"
+pytest-mock = "^3.14.0"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "open-cec-api/tests"
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
