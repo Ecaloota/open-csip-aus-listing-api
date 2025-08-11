@@ -1,5 +1,3 @@
-from typing import Literal
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,7 +6,6 @@ class Settings(BaseSettings):
     Settings for the Open CEC API.
     """
 
-    schema_version: Literal["v1", "v2"] = "v1"
     host: str = "0.0.0.0"  # listen on all interfaces
     port: int = 8080
     workers_count: int = 1

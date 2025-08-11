@@ -3,15 +3,14 @@ services:
   api:
     build:
       dockerfile: deploy/Dockerfile
+      context: ..
       target: ${RUN_ENV:-prod}
     image: open_cec_api:${API_VERSION:-latest}
     restart: always
-    env_file:
-      - .env
-    environment:
-      - SCHEMA_VERSION=${OPEN_CEC_API_SCHEMA_VERSION}
+    # env_file:
+    #   - .env
     ports:
-      - "${OPEN_CEC_API_PORT}:${OPEN_CEC_API_PORT}"
+      - "${OPEN_CEC_API_PORT:-8080}:${OPEN_CEC_API_PORT:-8080}"
     depends_on:
       - postgres
 
@@ -19,14 +18,14 @@ services:
   postgres:
     image: postgres
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-db_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-db_pass}
+      POSTGRES_DB: ${DB_NAME:-cec_db}
       PGDATA: /data/postgres
     volumes:
        - postgres:/data/postgres
     ports:
-      - ${DB_PORT}:${DB_PORT}
+      - ${DB_PORT:-5432}:${DB_PORT:-5432}
     restart: unless-stopped
   
 

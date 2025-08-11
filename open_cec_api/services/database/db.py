@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 class DatabaseSettings(BaseSettings):
     dialect: str = "postgresql"
-    user: str
-    password: str
+    user: str = "db_user"
+    password: str = "db_pass"
     host: str = "postgres"  # Default to 'postgres' for Docker setup
-    name: str
+    name: str = "cec_db"
 
     @property
     def database_url(self) -> str:
