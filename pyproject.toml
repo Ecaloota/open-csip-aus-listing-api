@@ -27,11 +27,6 @@ mypy = "^1.10.0"
 testcontainers = "^4.6.0"
 pytest-mock = "^3.14.0"
 
-[tool.pytest.ini_options]
-testpaths = [
-    "open-cec-api/tests"
-]
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

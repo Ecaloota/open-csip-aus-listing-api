@@ -5,12 +5,12 @@ from fastapi import FastAPI
 from loguru import logger
 
 from open_cec_api.api.router import router
-from open_cec_api.services.database.db import engine
+from open_cec_api.services.database.db import engine, ensure_session
+from open_cec_api.services.database.initialisation import init_db
 from open_cec_api.services.database.models import Base
-from open_cec_api.services.database.setup import init_db
 
 
-async def reset_db():
+def reset_db():
     """
     Reset the database by dropping and creating tables based on the schema version.
     This is primarily used for development purposes.
@@ -18,7 +18,9 @@ async def reset_db():
 
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    await init_db()
+
+    with ensure_session() as session:
+        init_db(session)
 
 
 @asynccontextmanager
@@ -38,7 +40,7 @@ async def lifespan(app: FastAPI):
     # and perform db initialization
     if run_env == "dev":
         logger.info("Creating database tables")
-        await reset_db()  # type: ignore[arg-type]
+        reset_db()  # type: ignore[arg-type]
 
     app.include_router(router)
 

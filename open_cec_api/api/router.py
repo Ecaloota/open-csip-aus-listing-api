@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from open_cec_api.api.auth import check_key_header
-from open_cec_api.services.database.db import ensure_session
+from open_cec_api.services.database.db import get_db_session
 
 HeaderDependency = Depends(check_key_header)
-SessionDependency = Annotated[Session, Depends(ensure_session)]
+SessionDependency = Annotated[Session, Depends(get_db_session)]
 
 # We cannot pass the SessionDependency directly to the APIRouter
 router = APIRouter(dependencies=[HeaderDependency])

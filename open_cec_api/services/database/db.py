@@ -1,5 +1,5 @@
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from contextlib import contextmanager
+from typing import Generator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import create_engine
@@ -29,8 +29,17 @@ session_maker = sessionmaker(
 )
 
 
-@asynccontextmanager
-async def ensure_session() -> AsyncGenerator[Session, None]:
+@contextmanager
+def ensure_session() -> Generator[Session, None, None]:
+    session = session_maker()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+def get_db_session() -> Generator[Session, None, None]:
+    """FastAPI dependency for database sessions."""
     session = session_maker()
     try:
         yield session

@@ -1,6 +1,5 @@
 from sqlalchemy import (
     ARRAY,
-    Boolean,
     Column,
     Date,
     DateTime,
@@ -16,6 +15,14 @@ from sqlalchemy.sql import func
 
 class Base(DeclarativeBase):
     pass
+
+
+class Key(Base):
+    __tablename__ = "keys"
+
+    id = Column(Integer, primary_key=True)
+    value = Column(String(50), nullable=False)  # hashed
+    description = Column(Text, nullable=False)
 
 
 class EntityType(Base):
@@ -35,7 +42,6 @@ class DeviceClass(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, unique=True)  # 'BESS', 'inverter', etc.
     description = Column(Text)
-    requires_inverter = Column(Boolean, default=False)
     created_at = Column(DateTime, default=func.current_timestamp())
 
     # Relationships
@@ -54,11 +60,6 @@ class Listing(Base):
     entity_type_id = Column(Integer, ForeignKey("entity_types.id"), nullable=False)
     manufacturer = Column(String(255), nullable=False)
     model = Column(String(255), nullable=False)
-    version = Column(String(100))
-    csip_aus_version = Column(String(50), nullable=False)
-    certification_body = Column(String(255))
-    certification_date = Column(Date)
-    certification_expiry = Column(Date)
     status = Column(String(50), default="active")  # 'active', 'suspended', 'expired'
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(
@@ -66,7 +67,7 @@ class Listing(Base):
     )
 
     # Constraints
-    __table_args__ = (UniqueConstraint("manufacturer", "model", "version"),)
+    __table_args__ = (UniqueConstraint("manufacturer", "model"),)
 
     # Relationships
     entity_type = relationship("EntityType", back_populates="listings")
@@ -89,7 +90,6 @@ class ListingDeviceClass(Base):
     id = Column(Integer, primary_key=True)
     listing_id = Column(Integer, ForeignKey("listings.id"), nullable=False)
     device_class_id = Column(Integer, ForeignKey("device_classes.id"), nullable=False)
-    is_primary = Column(Boolean, default=False)
     created_at = Column(DateTime, default=func.current_timestamp())
 
     # Constraints
@@ -109,8 +109,6 @@ class DeviceClassAttribute(Base):
     attribute_type = Column(
         String(50), nullable=False
     )  # 'string', 'number', 'boolean', 'enum'
-    is_required = Column(Boolean, default=False)
-    enum_values = Column(ARRAY(Text))  # For enum types
     description = Column(Text)
 
     # Constraints
@@ -144,7 +142,11 @@ class Certificate(Base):
 
     id = Column(Integer, primary_key=True)
     listing_id = Column(Integer, ForeignKey("listings.id"), nullable=False)
-    certificate_data = Column(String)
+    expiry = Column(Date, nullable=False)
+    certification_date = Column(Date, nullable=False)
+    certifying_body = Column(String(100), nullable=False)
+
+    test_profiles = Column(ARRAY(String), nullable=False)
 
     # Relationships
     listing = relationship("Listing", back_populates="certificates")
