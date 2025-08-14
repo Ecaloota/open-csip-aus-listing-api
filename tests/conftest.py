@@ -34,19 +34,26 @@ def db_engine_fixture():
 
 
 @pytest.fixture(scope="function")
-def db_session_fixture(db_engine_fixture) -> Generator[Session, None, None]:
+def db_session_fixture(
+    db_engine_fixture: sqlalchemy.Engine,
+) -> Generator[Session, None, None]:
+    connection = db_engine_fixture.connect()
+    transaction = connection.begin()
+
     session_maker = sessionmaker(
         autoflush=False,
         autocommit=False,
         expire_on_commit=False,
-        bind=db_engine_fixture,
+        bind=connection,
     )
     session = session_maker()
     try:
         yield session
-        session.rollback()
     finally:
         session.close()
+        if transaction.is_active:
+            transaction.rollback()
+        connection.close()
 
 
 @pytest.fixture
@@ -56,7 +63,7 @@ def dummy_entity_type_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = EntityType(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create
@@ -69,7 +76,7 @@ def dummy_device_class_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = DeviceClass(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create
@@ -86,7 +93,7 @@ def dummy_listing_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = Listing(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create
@@ -99,7 +106,7 @@ def dummy_listing_device_class_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = ListingDeviceClass(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create
@@ -116,7 +123,7 @@ def dummy_device_class_attribute_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = DeviceClassAttribute(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create
@@ -132,7 +139,7 @@ def dummy_listing_device_class_attribute_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = ListingDeviceClassAttribute(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create
@@ -149,7 +156,7 @@ def dummy_certificate_factory(db_session_fixture: Session):
         defaults.update(kwargs)
         model = Certificate(**defaults)
         db_session_fixture.add(model)
-        db_session_fixture.flush()
+        db_session_fixture.commit()
         return model
 
     return _create

@@ -7,10 +7,18 @@ from open_cec_api.api.schema.create import (
     DeviceClassAttributeCreate,
     DeviceClassCreate,
     EntityTypeCreate,
+    KeyCreate,
     ListingCreate,
     ListingDeviceClassAttributeCreate,
     ListingDeviceClassCreate,
 )
+
+
+class KeyBase(KeyCreate):
+    id: int
+
+    class Config:
+        from_attributes = True
 
 
 class EntityTypeBase(EntityTypeCreate):

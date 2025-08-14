@@ -8,6 +8,11 @@ from pydantic import BaseModel, Field
 from open_cec_api.api.schema.enums import AttributeTypeEnum, StatusEnum
 
 
+class KeyCreate(BaseModel):
+    value: str = Field(..., max_length=50, description="The hashed API key")
+    description: str
+
+
 class EntityTypeCreate(BaseModel):
     name: str = Field(
         ..., max_length=50, description="Entity type name (server, client)"

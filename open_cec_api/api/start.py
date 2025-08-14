@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from loguru import logger
 
-from open_cec_api.api.router import router
+from open_cec_api.api.admin_router import admin_router
+from open_cec_api.api.public_router import public_router
 from open_cec_api.services.database.db import engine, ensure_session
 from open_cec_api.services.database.initialisation import init_db
 from open_cec_api.services.database.models import Base
@@ -42,7 +43,8 @@ async def lifespan(app: FastAPI):
         logger.info("Creating database tables")
         reset_db()  # type: ignore[arg-type]
 
-    app.include_router(router)
+    app.include_router(public_router)
+    app.include_router(admin_router)
 
     yield
 

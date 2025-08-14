@@ -1,6 +1,4 @@
 from sqlalchemy import (
-    ARRAY,
-    Column,
     Date,
     DateTime,
     ForeignKey,
@@ -9,7 +7,8 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.dialects.postgresql import ARRAY  # postgres specific for ARRAY
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 
@@ -20,17 +19,19 @@ class Base(DeclarativeBase):
 class Key(Base):
     __tablename__ = "keys"
 
-    id = Column(Integer, primary_key=True)
-    value = Column(String(50), nullable=False)  # hashed
-    description = Column(Text, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    value: Mapped[str] = mapped_column(String(50), nullable=False)  # hashed
+    description: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class EntityType(Base):
     __tablename__ = "entity_types"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False, unique=True)  # 'server', 'client'
-    description = Column(Text)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(50), nullable=False, unique=True
+    )  # 'server', 'client'
+    description: Mapped[str] = mapped_column(Text)
 
     # Relationships
     listings = relationship("Listing", back_populates="entity_type")
@@ -39,10 +40,14 @@ class EntityType(Base):
 class DeviceClass(Base):
     __tablename__ = "device_classes"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, unique=True)  # 'BESS', 'inverter', etc.
-    description = Column(Text)
-    created_at = Column(DateTime, default=func.current_timestamp())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(100), nullable=False, unique=True
+    )  # 'BESS', 'inverter', etc.
+    description: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=func.current_timestamp()
+    )
 
     # Relationships
     listing_device_classes = relationship(
@@ -56,13 +61,19 @@ class DeviceClass(Base):
 class Listing(Base):
     __tablename__ = "listings"
 
-    id = Column(Integer, primary_key=True)
-    entity_type_id = Column(Integer, ForeignKey("entity_types.id"), nullable=False)
-    manufacturer = Column(String(255), nullable=False)
-    model = Column(String(255), nullable=False)
-    status = Column(String(50), default="active")  # 'active', 'suspended', 'expired'
-    created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    entity_type_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("entity_types.id"), nullable=False
+    )
+    manufacturer: Mapped[str] = mapped_column(String(255), nullable=False)
+    model: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(50), default="active"
+    )  # 'active', 'suspended', 'expired'
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=func.current_timestamp()
+    )
+    updated_at: Mapped[DateTime] = mapped_column(
         DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
     )
 
@@ -87,10 +98,16 @@ class Listing(Base):
 class ListingDeviceClass(Base):
     __tablename__ = "listing_device_classes"
 
-    id = Column(Integer, primary_key=True)
-    listing_id = Column(Integer, ForeignKey("listings.id"), nullable=False)
-    device_class_id = Column(Integer, ForeignKey("device_classes.id"), nullable=False)
-    created_at = Column(DateTime, default=func.current_timestamp())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    listing_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("listings.id"), nullable=False
+    )
+    device_class_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("device_classes.id"), nullable=False
+    )
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=func.current_timestamp()
+    )
 
     # Constraints
     __table_args__ = (UniqueConstraint("listing_id", "device_class_id"),)
@@ -103,13 +120,15 @@ class ListingDeviceClass(Base):
 class DeviceClassAttribute(Base):
     __tablename__ = "device_class_attributes"
 
-    id = Column(Integer, primary_key=True)
-    device_class_id = Column(Integer, ForeignKey("device_classes.id"), nullable=False)
-    attribute_name = Column(String(100), nullable=False)
-    attribute_type = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    device_class_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("device_classes.id"), nullable=False
+    )
+    attribute_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    attribute_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # 'string', 'number', 'boolean', 'enum'
-    description = Column(Text)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
 
     # Constraints
     __table_args__ = (UniqueConstraint("device_class_id", "attribute_name"),)
@@ -121,12 +140,18 @@ class DeviceClassAttribute(Base):
 class ListingDeviceClassAttribute(Base):
     __tablename__ = "listing_device_class_attributes"
 
-    id = Column(Integer, primary_key=True)
-    listing_id = Column(Integer, ForeignKey("listings.id"), nullable=False)
-    device_class_id = Column(Integer, ForeignKey("device_classes.id"), nullable=False)
-    attribute_name = Column(String(100), nullable=False)
-    attribute_value = Column(Text)
-    created_at = Column(DateTime, default=func.current_timestamp())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    listing_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("listings.id"), nullable=False
+    )
+    device_class_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("device_classes.id"), nullable=False
+    )
+    attribute_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    attribute_value: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=func.current_timestamp()
+    )
 
     # Constraints
     __table_args__ = (
@@ -140,13 +165,15 @@ class ListingDeviceClassAttribute(Base):
 class Certificate(Base):
     __tablename__ = "certificates"
 
-    id = Column(Integer, primary_key=True)
-    listing_id = Column(Integer, ForeignKey("listings.id"), nullable=False)
-    expiry = Column(Date, nullable=False)
-    certification_date = Column(Date, nullable=False)
-    certifying_body = Column(String(100), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    listing_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("listings.id"), nullable=False
+    )
+    expiry: Mapped[Date] = mapped_column(Date, nullable=False)
+    certification_date: Mapped[Date] = mapped_column(Date, nullable=False)
+    certifying_body: Mapped[str] = mapped_column(String(100), nullable=False)
 
-    test_profiles = Column(ARRAY(String), nullable=False)
+    test_profiles: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
 
     # Relationships
     listing = relationship("Listing", back_populates="certificates")
