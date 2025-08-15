@@ -56,6 +56,11 @@ admin_router = APIRouter(dependencies=[HeaderDependency], tags=["Admin"])
 # operations (e.g. create listings with associated cert in one step, or get
 # listings with their certs in one call, etc)
 
+# TODO some of these have a bug maybe wherein only the first in a list is returned?
+# e.g. for example element 7 (BESS + inverter), we only get one attribute not the list
+# of expected attributes. I suspect this is an issue with the CRUD get method?
+# but just looked and couldn't see the issue
+
 
 def register_crud_routes(
     router: APIRouter,

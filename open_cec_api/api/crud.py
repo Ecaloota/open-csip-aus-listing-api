@@ -596,28 +596,3 @@ class CertificateCRUD:
             session.commit()
             return True
         return False
-
-
-# Example usage with Pydantic models:
-"""
-# Create using Pydantic model
-entity_type_data = EntityTypeCreate(name="server", description="Server entity type")
-new_entity_type = EntityTypeCRUD.create(session, entity_type_data)
-
-# Update using Pydantic model
-update_data = EntityTypeUpdate(description="Updated description")
-updated_entity = EntityTypeCRUD.update(session, id=1, entity_type_data=update_data)
-
-# Create listing
-listing_data = ListingCreate(
-    entity_type_id=1,
-    manufacturer="Tesla",
-    model="Powerwall",
-    status="active"
-)
-new_listing = ListingCRUD.create(session, listing_data)
-
-# Update only specific fields
-listing_update = ListingUpdate(status="suspended")
-updated_listing = ListingCRUD.update(session, id=1, listing_data=listing_update)
-"""

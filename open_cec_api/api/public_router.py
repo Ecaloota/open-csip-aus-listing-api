@@ -37,10 +37,16 @@ def get_listings(
     model: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
 ):
+    et_id = None
+    if entity_type == "client":
+        et_id = 1
+    elif entity_type == "server":
+        et_id = 2
+
     filters = {
         k: v
         for k, v in {
-            "entity_type_id": 1 if entity_type == "client" else 2,
+            "entity_type_id": et_id,
             "manufacturer": manufacturer,
             "model": model,
             "status": status,
