@@ -1,4 +1,4 @@
-# Open CEC API & Data Model
+# Open CSIP-AUS Listing API & Data Model
 This is an unofficial refactor of the Clean Energy Council (CEC) API for Software Communication Clients (SCC), using FastAPI with a flexible and extensible underlying data model, supported by Docker and Postgres. It supports the listing of certified CSIP-AUS servers and clients, and facilitates the easy access of listed entities.
 
 This repository is not affiliated with the Clean Energy Council.
