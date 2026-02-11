@@ -1,21 +1,16 @@
-FROM python:3.12.10-slim-bookworm AS prod
+FROM python:3.13-slim-bookworm AS prod
+WORKDIR /app
 
-# install poetry
-RUN pip install poetry
+RUN pip install --no-cache-dir uv
 
-# Configuring poetry
-RUN poetry config virtualenvs.create false
+COPY pyproject.toml uv.lock README.md ./
+COPY . .
 
-# Copying requirements of a project
-COPY pyproject.toml poetry.lock README.md /app/src/
-COPY . /app/src/
-WORKDIR /app/src
+# If a host .venv was copied, remove it
+RUN rm -rf /app/.venv
 
-# Installing requirements
-RUN poetry install --only main
-CMD ["/usr/local/bin/python", "-m", "open_cec_api"]
+ENV UV_VENV_IN_PROJECT=1
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+RUN uv sync --frozen
 
-# Build new layer
-FROM prod AS dev
-RUN poetry install
-CMD ["/usr/local/bin/python", "-m", "open_cec_api"]
+CMD ["/app/.venv/bin/python", "-m", "open_cec_api"]

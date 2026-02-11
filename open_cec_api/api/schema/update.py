@@ -37,6 +37,11 @@ class DeviceClassAttributeUpdate(BaseModel):
     description: Optional[str] = None
 
 
+class ListingDeviceClassUpdate(BaseModel):
+    listing_id: Optional[int] = None
+    device_class_id: Optional[int] = None
+
+
 class ListingDeviceClassAttributeUpdate(BaseModel):
     attribute_value: Optional[str] = None
 

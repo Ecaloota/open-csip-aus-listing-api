@@ -7,8 +7,6 @@ services:
       target: ${RUN_ENV:-prod}
     image: open_cec_api:${API_VERSION:-latest}
     restart: always
-    # env_file:
-    #   - .env
     ports:
       - "${OPEN_CEC_API_PORT:-8080}:${OPEN_CEC_API_PORT:-8080}"
     depends_on:
@@ -25,7 +23,7 @@ services:
     volumes:
        - postgres:/data/postgres
     ports:
-      - ${DB_PORT:-5432}:${DB_PORT:-5432}
+       - "${DB_PORT:-5432}:5432"
     restart: unless-stopped
   
 

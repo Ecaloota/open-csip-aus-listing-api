@@ -1,50 +1,17 @@
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional, TypeVar, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+import open_cec_api.api.crud as crud
+import open_cec_api.api.schema.create as create_schema
+import open_cec_api.api.schema.read as read_schema
+import open_cec_api.api.schema.update as update_schema
 from open_cec_api.api.auth import check_key_header
-from open_cec_api.api.crud import (
-    CertificateCRUD,
-    DeviceClassAttributeCRUD,
-    DeviceClassCRUD,
-    EntityTypeCRUD,
-    KeyCRUD,
-    ListingCRUD,
-    ListingDeviceClassAttributeCRUD,
-    ListingDeviceClassCRUD,
-)
-from open_cec_api.api.schema.create import (
-    CertificateCreate,
-    DeviceClassAttributeCreate,
-    DeviceClassCreate,
-    EntityTypeCreate,
-    KeyCreate,
-    ListingCreate,
-    ListingDeviceClassAttributeCreate,
-    ListingDeviceClassCreate,
-)
-from open_cec_api.api.schema.read import (
-    CertificateBase,
-    DeviceClassAttributeBase,
-    DeviceClassBase,
-    EntityTypeBase,
-    KeyBase,
-    ListingBase,
-    ListingDeviceClassAttributeBase,
-    ListingDeviceClassBase,
-)
-from open_cec_api.api.schema.update import (
-    CertificateUpdate,
-    DeviceClassAttributeUpdate,
-    DeviceClassUpdate,
-    EntityTypeUpdate,
-    KeyUpdate,
-    ListingDeviceClassAttributeUpdate,
-    ListingUpdate,
-)
+from open_cec_api.api.crud.base import CRUDClass
 from open_cec_api.services.database.db import get_db_session
+from open_cec_api.services.database.models import Base as ModelBase
 
 HeaderDependency = Depends(check_key_header)
 SessionDependency = Annotated[Session, Depends(get_db_session)]
@@ -61,14 +28,16 @@ admin_router = APIRouter(dependencies=[HeaderDependency], tags=["Admin"])
 # of expected attributes. I suspect this is an issue with the CRUD get method?
 # but just looked and couldn't see the issue
 
+T = TypeVar("T", bound=ModelBase)
+
 
 def register_crud_routes(
     router: APIRouter,
     path: str,
-    crud_class: type,
+    crud_class: type[CRUDClass[T]],
     base_schema: type[BaseModel],
-    create_schema: type[BaseModel],
-    update_schema: type[BaseModel],
+    _create_schema: type[BaseModel],
+    _update_schema: type[BaseModel],
     filter_fields: list[str],
 ):
     """Register GET, POST, PUT, DELETE routes for a model."""
@@ -124,7 +93,7 @@ def register_crud_routes(
 
     async def create_item(
         session: SessionDependency,
-        item_data: create_schema,  # type: ignore
+        item_data: _create_schema,  # type: ignore
     ):
         try:
             return crud_class.create(session, item_data)
@@ -137,7 +106,7 @@ def register_crud_routes(
 
     async def update_item(
         id: int,
-        item_data: update_schema,  # type: ignore
+        item_data: _update_schema,  # type: ignore
         session: SessionDependency,
     ):
         result = crud_class.update(session, id, item_data)
@@ -173,10 +142,10 @@ def register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/keys",
-    KeyCRUD,
-    KeyBase,
-    KeyCreate,
-    KeyUpdate,
+    crud.KeyCRUD,
+    read_schema.KeyBase,
+    create_schema.KeyCreate,
+    update_schema.KeyUpdate,
     ["value", "description"],
 )
 
@@ -184,10 +153,10 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/entity-types",
-    EntityTypeCRUD,
-    EntityTypeBase,
-    EntityTypeCreate,
-    EntityTypeUpdate,
+    crud.EntityTypeCRUD,
+    read_schema.EntityTypeBase,
+    create_schema.EntityTypeCreate,
+    update_schema.EntityTypeUpdate,
     ["name"],
 )
 
@@ -195,10 +164,10 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/device-classes",
-    DeviceClassCRUD,
-    DeviceClassBase,
-    DeviceClassCreate,
-    DeviceClassUpdate,
+    crud.DeviceClassCRUD,
+    read_schema.DeviceClassBase,
+    create_schema.DeviceClassCreate,
+    update_schema.DeviceClassUpdate,
     ["name"],
 )
 
@@ -206,10 +175,10 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/listings",
-    ListingCRUD,
-    ListingBase,
-    ListingCreate,
-    ListingUpdate,
+    crud.ListingCRUD,
+    read_schema.ListingBase,
+    create_schema.ListingCreate,
+    update_schema.ListingUpdate,
     ["entity_type_id", "manufacturer", "model", "status"],
 )
 
@@ -217,10 +186,10 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/listing-device-classes",
-    ListingDeviceClassCRUD,
-    ListingDeviceClassBase,
-    ListingDeviceClassCreate,
-    ListingDeviceClassCreate,
+    crud.ListingDeviceClassCRUD,
+    read_schema.ListingDeviceClassBase,
+    create_schema.ListingDeviceClassCreate,
+    update_schema.ListingDeviceClassUpdate,
     ["listing_id", "device_class_id"],
 )
 
@@ -228,10 +197,10 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/device-class-attributes",
-    DeviceClassAttributeCRUD,
-    DeviceClassAttributeBase,
-    DeviceClassAttributeCreate,
-    DeviceClassAttributeUpdate,
+    crud.DeviceClassAttributeCRUD,
+    read_schema.DeviceClassAttributeBase,
+    create_schema.DeviceClassAttributeCreate,
+    update_schema.DeviceClassAttributeUpdate,
     ["device_class_id", "attribute_name"],
 )
 
@@ -239,10 +208,10 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/listing-device-class-attributes",
-    ListingDeviceClassAttributeCRUD,
-    ListingDeviceClassAttributeBase,
-    ListingDeviceClassAttributeCreate,
-    ListingDeviceClassAttributeUpdate,
+    crud.ListingDeviceClassAttributeCRUD,
+    read_schema.ListingDeviceClassAttributeBase,
+    create_schema.ListingDeviceClassAttributeCreate,
+    update_schema.ListingDeviceClassAttributeUpdate,
     ["listing_id", "device_class_id", "attribute_name"],
 )
 
@@ -250,9 +219,16 @@ register_crud_routes(
 register_crud_routes(
     admin_router,
     "/admin/certificates",
-    CertificateCRUD,
-    CertificateBase,
-    CertificateCreate,
-    CertificateUpdate,
+    crud.CertificateCRUD,
+    read_schema.CertificateBase,
+    create_schema.CertificateCreate,
+    update_schema.CertificateUpdate,
     ["listing_id", "certifying_body"],
 )
+
+
+@admin_router.get("/foo")
+async def foo(session: SessionDependency, id: Optional[int] = None):
+    from open_cec_api.api.crud.extended import get
+
+    return get(session, id)
