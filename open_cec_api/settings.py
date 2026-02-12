@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"  # listen on all interfaces
     port: int = 8080
     workers_count: int = 1
-    reload: bool = False
+    reload: bool = True
 
     api_key_hash: str
 

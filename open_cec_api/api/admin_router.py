@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-import open_cec_api.api.crud as crud
+import open_cec_api.api.crud.crud as crud
 import open_cec_api.api.schema.create as create_schema
 import open_cec_api.api.schema.read as read_schema
 import open_cec_api.api.schema.update as update_schema

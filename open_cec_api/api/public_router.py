@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from open_cec_api.api.auth import check_key_header
-from open_cec_api.api.crud import ListingCRUD
+from open_cec_api.api.crud.crud import ListingCRUD
 from open_cec_api.api.schema.read import ListingBase
 from open_cec_api.services.database.db import get_db_session
 
@@ -17,6 +17,8 @@ public_router = APIRouter(dependencies=[HeaderDependency], tags=["Public"])
 # TODO we may wish to define endpoints which allow the user to perform extended
 # operations (e.g. create listings with associated cert in one step, or get
 # listings with their certs in one call, etc)
+
+ENTITY_MAP = {None: None, "client": 1, "server": 2}
 
 
 @public_router.get("/")
@@ -37,16 +39,11 @@ def get_listings(
     model: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
 ):
-    et_id = None
-    if entity_type == "client":
-        et_id = 1
-    elif entity_type == "server":
-        et_id = 2
 
     filters = {
         k: v
         for k, v in {
-            "entity_type_id": et_id,
+            "entity_type_id": ENTITY_MAP.get(entity_type, None),
             "manufacturer": manufacturer,
             "model": model,
             "status": status,

@@ -12,6 +12,14 @@ services:
     depends_on:
       - postgres
 
+    develop:
+      watch:
+        - action: sync
+          path: ..
+          target: /app
+        - action: rebuild
+          path: deploy/Dockerfile
+
 
   postgres:
     image: postgres

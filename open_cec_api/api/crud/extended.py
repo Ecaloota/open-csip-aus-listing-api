@@ -1,62 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload, selectinload
+from open_cec_api.services.database.models import Listing
 
-from open_cec_api.services.database.models import (
-    DeviceClass,
-    Listing,
-    ListingDeviceClass,
-)
+# TODO define some extended model type,
+# make this return that model type and define or update the router endpoint to use
+# that model type as that response_model
 
 
-def get(
-    session: Session,
-    id: Optional[int] = None,
-    **filters: Any,
-) -> Union[Listing, List[Listing], None]:
-    """
-    Fetch Listing(s) with maximal related detail.
-
-    - If `id` is provided: returns a single Listing or None.
-    - Else: returns a list of Listings (possibly empty).
-
-    `filters` are applied as exact-match filters on Listing columns only
-    (e.g. status="active", manufacturer="Tesla", model="Powerwall").
-    """
-
-    # Eager-load:
-    # - entity_type
-    # - listing_device_classes -> device_class -> device_class_attributes
-    # - listing_device_class_attributes
-    # - certificates
-    stmt = select(Listing).options(
-        joinedload(Listing.entity_type),
-        selectinload(Listing.listing_device_classes)
-        .joinedload(ListingDeviceClass.device_class)
-        .selectinload(DeviceClass.device_class_attributes),
-        selectinload(Listing.listing_device_class_attributes),
-        selectinload(Listing.certificates),
-    )
-
-    if id is not None:
-        stmt = stmt.where(Listing.id == id)
-
-    # Apply exact-match filters on Listing columns (ignore unknown keys)
-    listing_cols = Listing.__table__.columns  # type: ignore[attr-defined]
-    for key, value in filters.items():
-        if key in listing_cols:
-            stmt = stmt.where(getattr(Listing, key) == value)
-
-    if id is not None:
-        return session.execute(stmt).scalars().unique().one_or_none()
-
-    return session.execute(stmt).scalars().unique().all()
-
-
-def listing_to_detail_dict(listing: "Listing") -> Dict[str, Any]:
+def listing_to_detail_dict(listing: Listing) -> Dict[str, Any]:
     """
     Optional helper to shape a detailed JSON-ready payload (more explicit than returning ORM objects).
     """
@@ -67,15 +20,7 @@ def listing_to_detail_dict(listing: "Listing") -> Dict[str, Any]:
         "status": listing.status,
         "created_at": listing.created_at.isoformat() if listing.created_at else None,
         "updated_at": listing.updated_at.isoformat() if listing.updated_at else None,
-        "entity_type": (
-            {
-                "id": listing.entity_type.id,
-                "name": listing.entity_type.name,
-                "description": listing.entity_type.description,
-            }
-            if listing.entity_type
-            else None
-        ),
+        "entity_type": listing.entity_type.name if listing.entity_type else None,
         "device_classes": [
             {
                 "listing_device_class_id": ldc.id,
@@ -98,7 +43,7 @@ def listing_to_detail_dict(listing: "Listing") -> Dict[str, Any]:
                 }
                 if ldc.device_class
                 else None,
-                "created_at": ldc.created_at.isoformat() if ldc.created_at else None,
+                # "created_at": ldc.created_at.isoformat() if ldc.created_at else None,
             }
             for ldc in (listing.listing_device_classes or [])
         ],

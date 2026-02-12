@@ -51,4 +51,4 @@ async def lifespan(app: FastAPI):
     # Perform any shutdown tasks here
 
 
-app = FastAPI(title="Open CEC API", lifespan=lifespan)
+app = FastAPI(title="Open CSIP-AUS Listing API", lifespan=lifespan)
