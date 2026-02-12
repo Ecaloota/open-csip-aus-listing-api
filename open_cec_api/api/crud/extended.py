@@ -1,12 +1,49 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Union
 
-from open_cec_api.services.database.models import Listing
+from sqlalchemy import select
+from sqlalchemy.orm import Session, joinedload, selectinload
+
+from open_cec_api.services.database.models import (
+    DeviceClass,
+    Listing,
+    ListingDeviceClass,
+)
 
 # TODO define some extended model type,
 # make this return that model type and define or update the router endpoint to use
 # that model type as that response_model
+
+
+def eager_get_listings(
+    session: Session,
+    id: Optional[int] = None,
+    **filters: Any,
+) -> Union["Listing", list["Listing"], None]:
+
+    stmt = select(Listing).options(
+        joinedload(Listing.entity_type),
+        selectinload(Listing.listing_device_classes)
+        .joinedload(ListingDeviceClass.device_class)
+        .selectinload(DeviceClass.device_class_attributes),
+        selectinload(Listing.listing_device_class_attributes),
+        selectinload(Listing.certificates),
+    )
+
+    if id is not None:
+        stmt = stmt.where(Listing.id == id)
+
+    # Apply exact-match filters on Listing columns (ignore unknown keys)
+    listing_cols = Listing.__table__.columns
+    for key, value in filters.items():
+        if key in listing_cols:
+            stmt = stmt.where(getattr(Listing, key) == value)
+
+    if id is not None:
+        return session.execute(stmt).scalars().unique().one_or_none()
+
+    return session.execute(stmt).scalars().unique().all()
 
 
 def listing_to_detail_dict(listing: Listing) -> Dict[str, Any]:

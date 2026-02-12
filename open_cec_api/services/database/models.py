@@ -17,6 +17,10 @@ class Base(DeclarativeBase):
 
 
 class Key(Base):
+    """
+    Stores access keys
+    """
+
     __tablename__ = "keys"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -25,6 +29,12 @@ class Key(Base):
 
 
 class EntityType(Base):
+    """
+    Defines categories of entities (e.g. server or client). Each entity type has a unique
+    name and description. One entity type can be associated with many listings. A listing
+    must reference exactly one entity type (e.g. a listing can only be one of server or client)
+    """
+
     __tablename__ = "entity_types"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -38,6 +48,12 @@ class EntityType(Base):
 
 
 class DeviceClass(Base):
+    """
+    Represents a category of devices such as a BESS or inverter. A device class can be linked
+    to many listings through a join table and can define many attributes that describe the
+    properties of the class.
+    """
+
     __tablename__ = "device_classes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -59,6 +75,15 @@ class DeviceClass(Base):
 
 
 class Listing(Base):
+    """Represents a specific product offered by a manufacturer, unique by
+    manufacturer-model pair. Each listing:
+
+    * Belongs to one entity type
+    * Can be associated with multiple device classes
+    * Can store attribute values specific to its device classes
+    * Can have multiple certificates
+    """
+
     __tablename__ = "listings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -96,6 +121,10 @@ class Listing(Base):
 
 
 class ListingDeviceClass(Base):
+    """A join table that links listings and device classes. It models a many-to-many
+    relationship: a listing can belong to multiple device classes and a device class can
+    apply to multiple listings. Each listing-device class pair is unique."""
+
     __tablename__ = "listing_device_classes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -118,6 +147,9 @@ class ListingDeviceClass(Base):
 
 
 class DeviceClassAttribute(Base):
+    """Defines attribute schemas for a device class. Each record specifies an attribute name
+    and type, and optional description. A device class can have many attributes"""
+
     __tablename__ = "device_class_attributes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -138,6 +170,10 @@ class DeviceClassAttribute(Base):
 
 
 class ListingDeviceClassAttribute(Base):
+    """Stores attribute values for a lisitng within a device class. It links a listing
+    and device class to an attribute name and value. Each listing-device class-attribute
+    combination is unqiue. This model instantiates the attribute definitions from DeviceClassAttribute."""
+
     __tablename__ = "listing_device_class_attributes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -163,6 +199,10 @@ class ListingDeviceClassAttribute(Base):
 
 
 class Certificate(Base):
+    """Represents certifications associated with a listing. Each certificate records details
+    associated with the certification event, such as the expiry date and certifying body.
+    A listing can have multiple certificates, and a certificate belongs to exactly one listing"""
+
     __tablename__ = "certificates"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

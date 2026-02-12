@@ -19,9 +19,6 @@ SessionDependency = Annotated[Session, Depends(get_db_session)]
 # We cannot pass the SessionDependency directly to the APIRouter
 admin_router = APIRouter(dependencies=[HeaderDependency], tags=["Admin"])
 
-# TODO we may wish to define endpoints which allow the user to perform extended
-# operations (e.g. create listings with associated cert in one step, or get
-# listings with their certs in one call, etc)
 
 # TODO some of these have a bug maybe wherein only the first in a list is returned?
 # e.g. for example element 7 (BESS + inverter), we only get one attribute not the list
@@ -229,6 +226,6 @@ register_crud_routes(
 
 @admin_router.get("/foo")
 async def foo(session: SessionDependency, id: Optional[int] = None):
-    from open_cec_api.api.crud.extended import get
+    from open_cec_api.api.crud.extended import eager_get_listings
 
-    return get(session, id)
+    return eager_get_listings(session, id)
